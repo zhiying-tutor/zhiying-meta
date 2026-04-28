@@ -47,7 +47,10 @@ status:
   done
 
 # Bring the whole local stack up (infra → backend → mocks → frontend).
+# Backend is built up-front so all the cargo output stays at the top
+# rather than getting interleaved with the per-service ✔ lines.
 up:
+  just zhiying-backend build
   just zhiying-infra serve
   just zhiying-backend serve
   just zhiying-mocks serve
@@ -66,3 +69,15 @@ ps:
   -@tmux ls 2>/dev/null
   @echo "--- docker compose (zhiying-infra) ---"
   -@cd zhiying-infra && docker compose ps
+
+# Wipe local persistent state: docker volumes + backend SQLite file.
+# Depends on down so frontend / mocks aren't left talking to gone services.
+reset: down
+  just zhiying-infra reset
+  just zhiying-backend reset
+
+# Remove build artifacts across all subrepos (cargo target, .next, py caches).
+clean:
+  just zhiying-backend clean
+  just zhiying-frontend clean
+  just zhiying-mocks clean
