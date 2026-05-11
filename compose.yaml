@@ -1,11 +1,24 @@
 name: zhiying
 
-# 反向代理由外部 nginx-proxy-manager 接管：部署完成后把 npm 容器接入
-# zhiying_default 网络（`docker network connect zhiying_default <npm-container>`），
-# 然后在 npm 里把 frontend:3000 / backend:9000 加为 Proxy Host。
-# 对象存储走阿里云 OSS，由 STORAGE_* 环境变量在 .env 里配置。
+# nginx-proxy-manager 在本 stack 内：80/443/81 都对外（81 是管理台）。在 NPM
+# Web UI 里把 Proxy Host 指向 frontend:3000，同一 docker 网络里直接用 service
+# 名解析。对象存储走阿里云 OSS，由 STORAGE_* 环境变量在 .env 里配置。
 
 services:
+  npm:
+    image: jc21/nginx-proxy-manager:latest
+    container_name: zhiying-npm
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "81:81"
+    environment:
+      TZ: Asia/Shanghai
+    volumes:
+      - npm-data:/data
+      - npm-letsencrypt:/etc/letsencrypt
+
   postgres:
     image: postgres:16
     container_name: zhiying-postgres
@@ -134,3 +147,5 @@ services:
 volumes:
   postgres-data:
   rabbitmq-data:
+  npm-data:
+  npm-letsencrypt:
