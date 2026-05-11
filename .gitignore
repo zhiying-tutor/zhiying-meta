@@ -5,6 +5,9 @@ zhiying-mocks/
 zhiying-frontend/
 zhiying-ui/
 
+# Local secrets for compose (only .env.example is checked in)
+.env
+
 # OS / editor cruft
 .DS_Store
 *.swp
